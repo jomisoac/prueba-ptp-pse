@@ -88,7 +88,10 @@
                 <br>
                 <br>
                 <div class="links">
-                    <span>Iniciar sesión para continuar </span>
+                    @auth
+                    @else
+                        <span>Iniciar sesión para continuar </span>
+                    @endauth
                 </div>
             </div>
         </div>

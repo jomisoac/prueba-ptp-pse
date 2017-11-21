@@ -60,7 +60,7 @@ class TransactionBuilder
     {
         $this->userAgent = $_SERVER['HTTP_USER_AGENT'];
         $this->ipAddress = $_SERVER['REMOTE_ADDR'];
-        $this->returnURL = 'http://prueba-ptp-pse/home';
+        $this->returnURL = ( isset( $_SERVER['HTTPS'] ) ? 'https' : 'http' )."://$_SERVER[HTTP_HOST]/home";
         $this->language  = 'ES';
         $this->currency  = 'COP';
     }
@@ -74,7 +74,7 @@ class TransactionBuilder
 
     public static function currentTransaction()
     {
-        self::$selfInstance = session()->has('transaction') ? session()->get('transaction')[0] : null;
+        self::$selfInstance = session()->has( 'transaction' ) ? session()->get( 'transaction' )[0] : null;
 
         if ( null == self::$selfInstance ) {
             self::$selfInstance = new TransactionBuilder();
@@ -215,15 +215,16 @@ class TransactionBuilder
      */
     public function setPayer( $payer )
     {
-        $this->payer = $payer;
-        $this->buyer = $payer;
+        $this->payer    = $payer;
+        $this->buyer    = $payer;
         $this->shipping = $payer;
 
         $this->updateSession();
     }
 
-    protected function updateSession(){
-        session()->push('transaction', self::$selfInstance);
+    protected function updateSession()
+    {
+        session()->push( 'transaction', self::$selfInstance );
     }
 
 }

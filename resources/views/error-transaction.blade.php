@@ -7,11 +7,11 @@
             <div class="panel panel-default">
                 <div class="panel-heading">
                     :(
-                    <a class="pull-right" href="home">home</a>
+                    <a class="pull-right" href="/home">home</a>
                 </div>
 
                 <div class="panel-body">
-                    <div class="alert alert-success">
+                    <div class="alert alert-danger">
                     <h1 class="has-error">Ha ocurrido un error en la transacción</h1>
                     @if (app('env') != 'production')
                         <p>{{$responseReasonText}}</p>

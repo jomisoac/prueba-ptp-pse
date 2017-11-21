@@ -6,6 +6,8 @@ use Illuminate\Database\Eloquent\Model;
 
 class Transaction extends Model
 {
+    protected $primaryKey = 'transactionID';
+
     protected $fillable = [
         'transactionID',
         'reference',

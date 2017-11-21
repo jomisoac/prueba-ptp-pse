@@ -1,4 +1,4 @@
-@extends('layouts.app')
+    @extends('layouts.app')
 
 @section('content')
     <div class="container">
@@ -11,7 +11,7 @@
 
                     <div class="panel-body">
                         @if($bancos)
-                            <form action="nuevo_pago/create_transaction" method="post">
+                            <form action="/nuevo_pago" method="post">
                                 {{ csrf_field() }}
                                 <div class="row">
                                     <div class="col-md-8 form-group @if($errors->has('bankCode')) has-error @endif">
@@ -41,10 +41,13 @@
                                         @endif
                                     </div>
                                 </div>
+                                <br>
                                 <div class="row">
                                     <div class="col-md-12">
-                                        <input type="submit" value="Continuar"
-                                               class="btn btn-default btn-primary pull-right">
+                                        <a href="/cancelar_pago" class="btn btn-danger pull-left">
+                                            Cancelar Transacción
+                                        </a>
+                                        <input type="submit" value="Continuar" class="btn btn-primary pull-right">
                                     </div>
                                 </div>
                             </form>

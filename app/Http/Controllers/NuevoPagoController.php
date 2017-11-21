@@ -27,92 +27,100 @@ class NuevoPagoController extends Controller
 
     public function checkInfoPago()
     {
-        $user                = Auth::user();
-        $payer               = new Person();
-        $payer->document     = $user->document;
-        $payer->documentType = $user->documentType;
-        $payer->firstName    = $user->name;
-        $payer->address      = $user->address;
-        $payer->city         = $user->city;
-        $payer->province     = $user->province;
-        $payer->country      = $user->country;
-        $payer->emailAddress = $user->email;
-        $payer->mobile       = $user->mobile;
-        $payer->phone        = $user->phone;
-        $payer->company      = $user->company;
-
         session()->forget('transaction');
 
-        $transaction = TransactionBuilder::currentTransaction();
-
-        $transaction->setPayer( $payer );
-
-        return view( 'info-pago', ['transaction' => $transaction]);
+        return view( 'info-pago', ['user' => Auth::user()]);
     }
 
     public function confirmInfoPago( Request $request )
     {
         $this->validate( $request, [
-            'totalAmount' => [ 'required' ],
-            'reference'   => [ 'required' ],
-            'description' => [ 'required' ],
-            //            'totalAmount' => ['required'],
-            //            'totalAmount' => ['required'],
+            'totalAmount'  => 'required',
+            'reference'    => 'required',
+            'firstName'    => 'required',
+            'description'  => 'required',
+            'document'     => 'required',
+            'documentType' => 'required',
+            'emailAddress' => 'required|email'
         ] );
 
         $data = $request->input();
 
+        $payer = new Person();
+
+        $fields = [
+            'firstName',
+            'document',
+            'documentType',
+            'emailAddress',
+            'firstName',
+            'address',
+            'city',
+            'province',
+            'country',
+            'email',
+            'mobile',
+            'phone',
+            'company'
+        ];
+        foreach ( $fields as $field ) {
+            $payer->$field = !empty( $data[ $field ] ) ? $data[ $field ] : null;
+        }
+
         $transaction = TransactionBuilder::currentTransaction();
 
-        $transaction->setTotalAmount($data['totalAmount']);
-        $transaction->setReference($data['reference']);
-        $transaction->setDescription($data['description']);
+        $transaction->setPayer( $payer );
+        $transaction->setTotalAmount( $data['totalAmount'] );
+        $transaction->setReference( $data['reference'] );
+        $transaction->setDescription( $data['description'] );
 
-        return $this->getBancos();
-    }
-
-    public function getBancos()
-    {
         $bancos = $this->ptp_pse->bankList();
 
         return view( 'bancos-list', [ 'bancos' => $bancos ] );
     }
 
+    public function cancelTransaction()
+    {
+        session()->forget('transaction');
+
+        return view( 'home' );
+    }
+
     public function createTransaction( Request $request )
     {
         $this->validate( $request, [
-            'bankCode'  => [ 'required', 'not_in:0' ],
+            'bankCode'      => [ 'required', 'not_in:0' ],
             'bankInterface' => [ 'required' ]
         ], [
-            'bank_ode.required'  => 'Debes seleccionar tu banco',
-            'bank_ode.not_in'    => 'Debes seleccionar tu banco',
+            'bank_ode.required'      => 'Debes seleccionar tu banco',
+            'bank_ode.not_in'        => 'Debes seleccionar tu banco',
             'bankInterface.required' => 'Debes seleccionar una opción',
         ] );
 
         $data = $request->input();
 
         $transaction = TransactionBuilder::currentTransaction();
-        $transaction->setBankCode($data['bankCode']);
-        $transaction->setBankInterface($data['bankInterface']);
+        $transaction->setBankCode( $data['bankCode'] );
+        $transaction->setBankInterface( $data['bankInterface'] );
 
-        $result = $this->ptp_pse->sendTransaction($transaction->complete());
+        $response = $this->ptp_pse->sendTransaction( $transaction->complete() );
 
-        if($result->returnCode == 'SUCCESS'){
-            $transaction = Transaction::create([
-                'transactionID' => $result->transactionID,
-                'reference' => $transaction->getReference(),
-                'description' => $transaction->getDescription(),
-                'totalAmount' => $transaction->getTotalAmount(),
-                'user_id' => Auth::user()->id,
-            ]);
+        if ( $response->getReturnCode() == 'SUCCESS' ) {
+            $transaction = Transaction::create( [
+                'transactionID' => $response->getTransactionID(),
+                'reference'     => $transaction->getReference(),
+                'description'   => $transaction->getDescription(),
+                'totalAmount'   => $transaction->getTotalAmount(),
+                'user_id'       => Auth::user()->id,
+            ] );
 
-            if($transaction){
-                return redirect()->away($result->bankURL);
+            if ( $transaction ) {
+                return redirect()->away( $response->getBankURL() );
             } else {
-                return view('error-transaction', ['responseReasonText' => 'No se pudo almacenar la transacción en la base de datos ']);
+                return view( 'error-transaction', [ 'responseReasonText' => 'No se pudo almacenar la transacción en la base de datos ' ] );
             }
         } else {
-            return view('error-transaction', ['responseReasonText' => $result->responseReasonText]);
+            return view( 'error-transaction', [ 'responseReasonText' => $response->getResponseReasonText() ] );
         }
     }
 }
