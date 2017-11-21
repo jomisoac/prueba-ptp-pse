@@ -83,7 +83,7 @@ class NuevoPagoController extends Controller
     {
         session()->forget('transaction');
 
-        return view( 'home' );
+        return redirect()->route('home');
     }
 
     public function createTransaction( Request $request )

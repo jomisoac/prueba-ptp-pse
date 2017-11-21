@@ -21,5 +21,5 @@ Route::get('/home', 'HomeController@index')->name('home');
 
 Route::get('/info_pago', 'NuevoPagoController@checkInfoPago')->name('check-pago');
 Route::post('/info_pago', 'NuevoPagoController@confirmInfoPago')->name('confirm-pago');
-Route::post('/cancelar_pago', 'NuevoPagoController@cancelTransaction')->name('descartar-transaction-pago');
+Route::get('/cancelar_pago', 'NuevoPagoController@cancelTransaction')->name('descartar-transaction-pago');
 Route::post('/nuevo_pago', 'NuevoPagoController@createTransaction')->name('transaction-pago');
